@@ -50,7 +50,7 @@ BUILD_DIR = os.path.join(os.path.dirname(ROOT_DIR), 'build')
 if 'WORKING_DIR' in os.environ:
     WORKING_DIR = os.environ['WORKING_DIR']
 elif 'USER' in os.environ:
-    WORKING_DIR = os.path.join('/Tmp/{}'.format(os.environ['USER']), 'diplomacy')
+    WORKING_DIR = os.path.join('/tmp/{}'.format(os.environ['USER']), 'diplomacy')
 else:
     WORKING_DIR = tempfile.mkdtemp()
 
