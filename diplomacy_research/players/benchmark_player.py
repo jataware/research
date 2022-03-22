@@ -39,18 +39,21 @@ MAX_TIME_BETWEEN_CHECKS = 300
 class DipNetSLPlayer(ModelBasedPlayer):
     """ DipNet SL - NeurIPS 2019 Supervised Learning Benchmark Player """
 
-    def __init__(self, temperature=0.1, use_beam=False, port=9501, name=None):
+    def __init__(self, temperature=0.1, use_beam=False, port=9501, name=None, download_only=False):
         """ Constructor
             :param temperature: The temperature to apply to the logits.
             :param use_beam: Boolean that indicates that we want to use a beam search.
             :param port: The port to use for the tf serving to query the model.
             :param name: Optional. The name of this player.
         """
-        model_url = 'https://f002.backblazeb2.com/file/ppaquette-public/benchmarks/neurips2019-sl_model.zip'
+        model_url = 'https://jataware-misc.s3.amazonaws.com/neurips2019-sl_model.zip'
 
         # Creating serving if port is not open
-        if not is_port_opened(port):
-            launch_serving(model_url, port)
+        if not is_port_opened(port) or download_only:
+            launch_serving(model_url, port, download_only=download_only)
+        
+        if download_only:
+            return
 
         # Creating adapter
         grpc_dataset = GRPCDataset(hostname='localhost',
@@ -106,7 +109,7 @@ class WebDiplomacyPlayer(ModelBasedPlayer):
             :param port: The port to use for the tf serving to query the model.
             :param name: Optional. The name of this player.
         """
-        model_url = 'https://f002.backblazeb2.com/file/ppaquette-public/benchmarks/neurips2019-sl_model.zip'
+        model_url = 'https://jataware-misc.s3.amazonaws.com/neurips2019-sl_model.zip'
 
         # Creating serving if port is not open
         if not is_port_opened(port):
@@ -128,7 +131,7 @@ class WebDiplomacyPlayer(ModelBasedPlayer):
 
 
 # ------ Utility Methods ------
-def launch_serving(model_url, serving_port, first_launch=True):
+def launch_serving(model_url, serving_port, first_launch=True, download_only=False):
     """ Launches or relaunches the TF Serving process
         :param model_url: The URL to use to download the model
         :param serving_port: The port to use for TF serving
@@ -141,7 +144,7 @@ def launch_serving(model_url, serving_port, first_launch=True):
     bot_model = os.path.join(bot_directory, bot_filename)
 
     # If first launch, downloading the model
-    if first_launch:
+    if first_launch or download_only:
         shutil.rmtree(bot_directory, ignore_errors=True)
         os.makedirs(bot_directory, exist_ok=True)
 
@@ -156,6 +159,9 @@ def launch_serving(model_url, serving_port, first_launch=True):
     # Otherwise, restarting the serving
     elif is_port_opened(serving_port):
         kill_processes_using_port(serving_port)
+
+    if download_only:
+        return
 
     # Launching a new process
     log_file_path = os.path.join(WORKING_DIR, 'data', 'log_serving_%d.txt' % serving_port)

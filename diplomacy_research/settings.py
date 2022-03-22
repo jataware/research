@@ -85,5 +85,5 @@ GIT_IS_DIRTY = bool(GIT_IS_DIRTY.decode('utf-8').replace('\n', ''))
 
 # Downloadable containers URLs
 REDIS_DOWNLOAD_URL = 'https://f002.backblazeb2.com/file/ppaquette-public/containers/redis/redis-5.0.3-3.sif'
-TF_SERVING_DOWNLOAD_URL = 'https://f002.backblazeb2.com/file/ppaquette-public/containers/tensorflow_serving/tensorflow_serving-f16e777-tf1.13-001.sif'  # pylint: disable=line-too-long
+TF_SERVING_DOWNLOAD_URL = 'https://jataware-misc.s3.amazonaws.com/tensorflow_serving-f16e777-tf1.13-001.sif'  # pylint: disable=line-too-long
 ALBERT_AI_DOWNLOAD_URL = 'https://f002.backblazeb2.com/file/ppaquette-public/containers/albert_ai/albert_dumbbot-1.2.sif'                               # pylint: disable=line-too-long

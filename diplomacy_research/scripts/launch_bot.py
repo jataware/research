@@ -27,10 +27,6 @@ import json
 # Import sys for explicit library import.
 import sys
 
-# Direct the notebook to the diplomacy code base we want to use.
-sys.path.append('/home/user/source/repos/jatadiplo')
-
-
 from diplomacy import connect
 from diplomacy.utils import constants, exceptions, strings
 from tornado import gen, ioloop
@@ -38,7 +34,7 @@ from tornado import gen, ioloop
 from diplomacy.negotiation.negotiation import LOOKUP_REF
 from diplomacy.engine.message import Message
 
-sys.path.append('../jatadiploresearch')
+sys.path.append('./')
 from diplomacy_research.players.benchmark_player import DipNetSLPlayer
 from diplomacy_research.players.borgia_player import BorgiaPlayer
 
@@ -213,6 +209,14 @@ class Bot():
             LOGGER.info('%s/%s/%s/orders: %s', game.game_id, game.current_short_phase, power_name,
                         ', '.join(orders) if orders else '(empty)')
 
+async def download_models_async():
+    BorgiaPlayer(port=12345, download_only=True)
+    print('done downloading models')
+
+def download_models():
+    io_loop = ioloop.IOLoop.instance()
+    io_loop.run_sync(download_models_async)
+
 def main():
     """ Main script function. """
     parser = argparse.ArgumentParser(description='Run a bot to manage unordered dummy powers on a server.')
@@ -224,13 +228,18 @@ def main():
                         help='run every period (in seconds) (default: %d seconds)' % PERIOD_SECONDS)
     parser.add_argument('--buffer-size', type=int, default=128,
                         help='let bot ask for this number of powers to manage on server (default: 128 powers)')
-
     parser.add_argument('--game-prefix', type=str, default=None,
                         help='connect to only games with this prefix, or all games if None')
-
+    parser.add_argument('--download-models', default=False, action='store_true',
+                        help='download bot models without running the app')
     args = parser.parse_args()
 
     LOGGER.info(args)
+
+    if args.download_models:
+        #short circuit just for downloading models
+        download_models()
+        return
 
     bot = Bot(args.host, args.port, period_seconds=args.period, buffer_size=args.buffer_size, game_prefix=args.game_prefix)
     io_loop = ioloop.IOLoop.instance()
