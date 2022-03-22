@@ -50,7 +50,7 @@ class DipNetSLPlayer(ModelBasedPlayer):
 
         # Creating serving if port is not open
         if not is_port_opened(port):
-            launch_serving(model_url, port)
+            launch_serving(model_url, port, first_launch=False)
 
         # Creating adapter
         grpc_dataset = GRPCDataset(hostname='localhost',

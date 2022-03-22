@@ -41,14 +41,12 @@ RUN pip install /app/diplomacy
 ENV WORKING_DIR="$HOME/tmp"
 ENV PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION=cpp
 
-#print out the working directory
-RUN echo "contents of WORKING_DIR"
-RUN tree $WORKING_DIR
-
-
-
 # run command to download the models
 RUN python /app/diplomacy_research/scripts/launch_bot.py --download-models
+
+#print out the working directory (ensuring we downloaded the models correctly)
+RUN echo "contents of WORKING_DIR"
+RUN tree $WORKING_DIR
 
 #run command for starting the bot
 #TODO->port/host/etc.
