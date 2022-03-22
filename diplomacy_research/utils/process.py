@@ -214,9 +214,9 @@ def start_tf_serving(port, save_dir, batching_parameters=None, cluster_config=No
 
     # Otherwise, downloading containers and starting singularity
     else:
+        # Downloading container
+        tf_serving_img = os.path.join(WORKING_DIR, 'containers', TF_SERVING_DOWNLOAD_URL.split('/')[-1])
         ## ASSUMING ALREADY DOWNLOADED ##
-        # # Downloading container
-        # tf_serving_img = os.path.join(WORKING_DIR, 'containers', TF_SERVING_DOWNLOAD_URL.split('/')[-1])
         # download_file(TF_SERVING_DOWNLOAD_URL, tf_serving_img)
 
         # Never launching an instance, since we need a different port every time
