@@ -16,7 +16,7 @@ from tornado import gen
 import json
 
 class BorgiaPlayer(DipNetSLPlayer):
-    def __init__(self, temperature=0.1, use_beam=False, port=9501, name=None, download_only=False):
+    def __init__(self, temperature=0.1, use_beam=False, port=9501, name=None):
         """ Constructor
             :param temperature: The temperature to apply to the logits.
             :param use_beam: Boolean that indicates that we want to use a beam search.
@@ -24,7 +24,7 @@ class BorgiaPlayer(DipNetSLPlayer):
             :param name: Optional. The name of this player.
         """
        
-        super().__init__(temperature=temperature, use_beam=use_beam, port=port, name=name, download_only=download_only)
+        super().__init__(temperature=temperature, use_beam=use_beam, port=port, name=name)
 
 
     @gen.coroutine

@@ -26,6 +26,7 @@ import json
 
 # Import sys for explicit library import.
 import sys
+import os
 
 from diplomacy import connect
 from diplomacy.utils import constants, exceptions, strings
@@ -35,8 +36,11 @@ from diplomacy.negotiation.negotiation import LOOKUP_REF
 from diplomacy.engine.message import Message
 
 sys.path.append('./')
-from diplomacy_research.players.benchmark_player import DipNetSLPlayer
+from diplomacy_research.players.benchmark_player import DipNetSLPlayer, download_model
 from diplomacy_research.players.borgia_player import BorgiaPlayer
+from diplomacy_research.settings import REDIS_DOWNLOAD_URL, TF_SERVING_DOWNLOAD_URL, ALBERT_AI_DOWNLOAD_URL, \
+    WORKING_DIR, IN_PRODUCTION
+from diplomacy_research.utils.process import download_file
 
 LOGGER = logging.getLogger('diplomacy_research.scripts.launch_bot')
 PERIOD_SECONDS = 2
@@ -209,13 +213,13 @@ class Bot():
             LOGGER.info('%s/%s/%s/orders: %s', game.game_id, game.current_short_phase, power_name,
                         ', '.join(orders) if orders else '(empty)')
 
-async def download_models_async():
-    BorgiaPlayer(port=12345, download_only=True)
-    print('done downloading models')
+# async def download_models_async():
+#     BorgiaPlayer(download_only=True)
+#     print('done downloading models')
 
-def download_models():
-    io_loop = ioloop.IOLoop.instance()
-    io_loop.run_sync(download_models_async)
+# def download_models():
+#     io_loop = ioloop.IOLoop.instance()
+#     io_loop.run_sync(download_models_async)
 
 def main():
     """ Main script function. """
@@ -232,14 +236,23 @@ def main():
                         help='connect to only games with this prefix, or all games if None')
     parser.add_argument('--download-models', default=False, action='store_true',
                         help='download bot models without running the app')
+    parser.add_argument('--quit-after-download', default=True, action='store_true',
+                        help='quit after downloading models (only if download-models is set)')
     args = parser.parse_args()
 
     LOGGER.info(args)
 
+    # downloading models before running the scripts
     if args.download_models:
-        #short circuit just for downloading models
-        download_models()
-        return
+        model_url = 'https://jataware-misc.s3.amazonaws.com/neurips2019-sl_model.zip'
+        download_model(model_url) #TODO->do this with download_file()
+        
+        # Downloading container
+        tf_serving_img = os.path.join(WORKING_DIR, 'containers', TF_SERVING_DOWNLOAD_URL.split('/')[-1])
+        download_file(TF_SERVING_DOWNLOAD_URL, tf_serving_img)
+
+        if args.quit_after_download:
+            sys.exit(0)
 
     bot = Bot(args.host, args.port, period_seconds=args.period, buffer_size=args.buffer_size, game_prefix=args.game_prefix)
     io_loop = ioloop.IOLoop.instance()

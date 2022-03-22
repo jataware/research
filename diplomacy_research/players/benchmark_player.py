@@ -39,7 +39,7 @@ MAX_TIME_BETWEEN_CHECKS = 300
 class DipNetSLPlayer(ModelBasedPlayer):
     """ DipNet SL - NeurIPS 2019 Supervised Learning Benchmark Player """
 
-    def __init__(self, temperature=0.1, use_beam=False, port=9501, name=None, download_only=False):
+    def __init__(self, temperature=0.1, use_beam=False, port=9501, name=None):
         """ Constructor
             :param temperature: The temperature to apply to the logits.
             :param use_beam: Boolean that indicates that we want to use a beam search.
@@ -49,11 +49,8 @@ class DipNetSLPlayer(ModelBasedPlayer):
         model_url = 'https://jataware-misc.s3.amazonaws.com/neurips2019-sl_model.zip'
 
         # Creating serving if port is not open
-        if not is_port_opened(port) or download_only:
-            launch_serving(model_url, port, download_only=download_only)
-        
-        if download_only:
-            return
+        if not is_port_opened(port):
+            launch_serving(model_url, port)
 
         # Creating adapter
         grpc_dataset = GRPCDataset(hostname='localhost',
@@ -131,37 +128,40 @@ class WebDiplomacyPlayer(ModelBasedPlayer):
 
 
 # ------ Utility Methods ------
-def launch_serving(model_url, serving_port, first_launch=True, download_only=False):
-    """ Launches or relaunches the TF Serving process
-        :param model_url: The URL to use to download the model
-        :param serving_port: The port to use for TF serving
-        :param first_launch: Boolean that indicates if this is the first launch or a relaunch
-    """
+def download_model(model_url):
     model_url = model_url or ''
     bot_filename = model_url.split('/')[-1]
     bot_name = bot_filename.split('.')[0]
     bot_directory = os.path.join(WORKING_DIR, 'data', 'bot_%s' % bot_name)
     bot_model = os.path.join(bot_directory, bot_filename)
 
+    print(f'Downloading {bot_model} from {model_url}')
+
+    shutil.rmtree(bot_directory, ignore_errors=True)
+    os.makedirs(bot_directory, exist_ok=True)
+
+    # Downloading model
+    download_file(model_url, bot_model, force=True)
+
+    # Unzipping file
+    zip_ref = zipfile.ZipFile(bot_model, 'r')
+    zip_ref.extractall(bot_directory)
+    zip_ref.close()
+
+
+def launch_serving(model_url, serving_port, first_launch=True):
+    """ Launches or relaunches the TF Serving process
+        :param model_url: The URL to use to download the model
+        :param serving_port: The port to use for TF serving
+        :param first_launch: Boolean that indicates if this is the first launch or a relaunch
+    """
     # If first launch, downloading the model
-    if first_launch or download_only:
-        shutil.rmtree(bot_directory, ignore_errors=True)
-        os.makedirs(bot_directory, exist_ok=True)
-
-        # Downloading model
-        download_file(model_url, bot_model, force=True)
-
-        # Unzipping file
-        zip_ref = zipfile.ZipFile(bot_model, 'r')
-        zip_ref.extractall(bot_directory)
-        zip_ref.close()
+    if first_launch:
+        download_model(model_url)
 
     # Otherwise, restarting the serving
     elif is_port_opened(serving_port):
         kill_processes_using_port(serving_port)
-
-    if download_only:
-        return
 
     # Launching a new process
     log_file_path = os.path.join(WORKING_DIR, 'data', 'log_serving_%d.txt' % serving_port)
