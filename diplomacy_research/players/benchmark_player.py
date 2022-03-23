@@ -159,8 +159,8 @@ def launch_serving(model_url, serving_port, first_launch=True):
     if first_launch:
         download_model(model_url, bot_directory, bot_model)
 
-    # Otherwise, restarting the serving
-    elif is_port_opened(serving_port):
+    # restarting the serving
+    if is_port_opened(serving_port):
         kill_processes_using_port(serving_port)
 
     # Launching a new process
