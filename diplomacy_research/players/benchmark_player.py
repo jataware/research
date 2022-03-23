@@ -128,13 +128,7 @@ class WebDiplomacyPlayer(ModelBasedPlayer):
 
 
 # ------ Utility Methods ------
-def download_model(model_url):
-    model_url = model_url or ''
-    bot_filename = model_url.split('/')[-1]
-    bot_name = bot_filename.split('.')[0]
-    bot_directory = os.path.join(WORKING_DIR, 'data', 'bot_%s' % bot_name)
-    bot_model = os.path.join(bot_directory, bot_filename)
-
+def download_model(model_url, bot_directory, bot_model):
     print(f'Downloading {bot_model} from {model_url}')
 
     shutil.rmtree(bot_directory, ignore_errors=True)
@@ -155,9 +149,15 @@ def launch_serving(model_url, serving_port, first_launch=True):
         :param serving_port: The port to use for TF serving
         :param first_launch: Boolean that indicates if this is the first launch or a relaunch
     """
+    model_url = model_url or ''
+    bot_filename = model_url.split('/')[-1]
+    bot_name = bot_filename.split('.')[0]
+    bot_directory = os.path.join(WORKING_DIR, 'data', 'bot_%s' % bot_name)
+    bot_model = os.path.join(bot_directory, bot_filename)
+
     # If first launch, downloading the model
     if first_launch:
-        download_model(model_url)
+        download_model(model_url, bot_directory, bot_model)
 
     # Otherwise, restarting the serving
     elif is_port_opened(serving_port):

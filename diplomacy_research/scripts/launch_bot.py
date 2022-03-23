@@ -236,8 +236,8 @@ def main():
                         help='connect to only games with this prefix, or all games if None')
     parser.add_argument('--download-models', default=False, action='store_true',
                         help='download bot models without running the app')
-    parser.add_argument('--quit-after-download', default=True, action='store_true',
-                        help='quit after downloading models (only if download-models is set)')
+    parser.add_argument('--continue-after-download', default=False, action='store_true',
+                        help='continue after downloading models (only if download-models is set)')
     args = parser.parse_args()
 
     LOGGER.info(args)
@@ -245,13 +245,17 @@ def main():
     # downloading models before running the scripts
     if args.download_models:
         model_url = 'https://jataware-misc.s3.amazonaws.com/neurips2019-sl_model.zip'
-        download_model(model_url) #TODO->do this with download_file()
+        bot_filename = model_url.split('/')[-1]
+        bot_name = bot_filename.split('.')[0]
+        bot_directory = os.path.join(WORKING_DIR, 'data', 'bot_%s' % bot_name)
+        bot_model = os.path.join(bot_directory, bot_filename)
+        download_model(model_url, bot_directory, bot_model)
         
         # Downloading container
         tf_serving_img = os.path.join(WORKING_DIR, 'containers', TF_SERVING_DOWNLOAD_URL.split('/')[-1])
-        download_file(TF_SERVING_DOWNLOAD_URL, tf_serving_img)
+        download_file(TF_SERVING_DOWNLOAD_URL, tf_serving_img, force=True)
 
-        if args.quit_after_download:
+        if not args.continue_after_download:
             sys.exit(0)
 
     bot = Bot(args.host, args.port, period_seconds=args.period, buffer_size=args.buffer_size, game_prefix=args.game_prefix)
