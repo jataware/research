@@ -231,6 +231,7 @@ def start_tf_serving(port, save_dir, batching_parameters=None, cluster_config=No
                    '--file_system_poll_wait_seconds=%d' % poll_time]
 
     # Launching process
+    LOGGER.info(f"Starting TF Serving server locally with command: {' '.join(command)}")
     _start_process(command,
                    block_thread=True,
                    check_fn=lambda: is_port_opened(port),

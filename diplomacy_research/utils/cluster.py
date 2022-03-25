@@ -232,6 +232,7 @@ def is_port_opened(port, hostname='127.0.0.1'):
     """
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     result = sock.connect_ex((hostname, port))
+    LOGGER.info(f"PORT OPEN: {hostname}: {result}")
     if result == 0:
         return True
     return False

@@ -164,6 +164,7 @@ def launch_serving(model_url, serving_port, first_launch=True):
         kill_processes_using_port(serving_port)
 
     # Launching a new process
+    LOGGER.info(f"Launching TF Serving on port {serving_port} with working directory {WORKING_DIR}")
     log_file_path = os.path.join(WORKING_DIR, 'data', 'log_serving_%d.txt' % serving_port)
     serving_process = Process(target=start_tf_serving,
                               args=(serving_port, WORKING_DIR),

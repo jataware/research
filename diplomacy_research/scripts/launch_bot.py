@@ -102,35 +102,35 @@ class Bot():
 
         game_dummy_powers = {}
         while True:
-            try:
-                # The call to channel.get_dummy_waiting_orders() should use game_prefix.
-                all_dummy_power_names = yield channel.get_dummy_waiting_powers(buffer_size=self.buffer_size)
+            # try:
+            # The call to channel.get_dummy_waiting_orders() should use game_prefix.
+            all_dummy_power_names = yield channel.get_dummy_waiting_powers(buffer_size=self.buffer_size)
+            LOGGER.info(f'Got %d dummy powers: {all_dummy_power_names}')
+            # Getting orders for the dummy powers
+            if all_dummy_power_names:
+                LOGGER.info('Managing %d game(s).', len(all_dummy_power_names))
+                yield [self.generate_orders(channel, game_id, dummy_power_names)
+                        for game_id, dummy_power_names in all_dummy_power_names.items()
+                        if (self.game_prefix is None or str(game_id).startswith(self.game_prefix))]
 
-                # Getting orders for the dummy powers
-                if all_dummy_power_names:
-                    LOGGER.info('Managing %d game(s).', len(all_dummy_power_names))
-                    yield [self.generate_orders(channel, game_id, dummy_power_names)
-                           for game_id, dummy_power_names in all_dummy_power_names.items()
-                            if (self.game_prefix is None or str(game_id).startswith(self.game_prefix))]
-
-                    # Cheat for messages. populate active game_ids                
-                    for game_id, dummy_power_names in all_dummy_power_names.items():
-                        if game_id in game_dummy_powers:
-                            if len(dummy_power_names) > len(game_dummy_powers[game_id]):
-                                game_dummy_powers[game_id] = dummy_power_names
-                        else:
+                # Cheat for messages. populate active game_ids                
+                for game_id, dummy_power_names in all_dummy_power_names.items():
+                    if game_id in game_dummy_powers:
+                        if len(dummy_power_names) > len(game_dummy_powers[game_id]):
                             game_dummy_powers[game_id] = dummy_power_names
+                    else:
+                        game_dummy_powers[game_id] = dummy_power_names
 
-                # Check games for messsages.
-                if game_dummy_powers:
-                    yield [self.handle_messaging(channel, game_id, dummy_power_names)
-                           for game_id, dummy_power_names in game_dummy_powers.items()]
+            # Check games for messsages.
+            if game_dummy_powers:
+                yield [self.handle_messaging(channel, game_id, dummy_power_names)
+                        for game_id, dummy_power_names in game_dummy_powers.items()]
 
-                yield gen.sleep(self.period_seconds)
+            yield gen.sleep(self.period_seconds)
 
-            # Server error - Logging, but continuing
-            except (exceptions.DiplomacyException, RuntimeError) as error:
-                LOGGER.error(error)
+            # # Server error - Logging, but continuing
+            # except (exceptions.DiplomacyException, RuntimeError) as error:
+            #     LOGGER.error(error)
 
     @gen.coroutine
     def handle_messaging(self, channel, game_id, dummy_power_names):
@@ -177,19 +177,19 @@ class Bot():
             :type channel: diplomacy.client.channel.Channel
             :type game_channel: diplomacy.client.channel.Channel
         """
-        try:
-            # Join powers.
-            yield channel.join_powers(game_id=game_id, power_names=dummy_power_names)
+        # try:
+        # Join powers.
+        yield channel.join_powers(game_id=game_id, power_names=dummy_power_names)
 
-            # Join all games
-            games = yield {power_name: channel.join_game(game_id=game_id, power_name=power_name)
-                           for power_name in dummy_power_names}
+        # Join all games
+        games = yield {power_name: channel.join_game(game_id=game_id, power_name=power_name)
+                        for power_name in dummy_power_names}
+        logger.info(f'Joined {len(games)} games.')
+        # Retrieves and submits all orders
+        yield [self.submit_orders(games[power_name], power_name) for power_name in dummy_power_names]
 
-            # Retrieves and submits all orders
-            yield [self.submit_orders(games[power_name], power_name) for power_name in dummy_power_names]
-
-        except exceptions.ResponseException as exc:
-            LOGGER.error('Exception occurred while working on game %s: %s', game_id, exc)
+        # except exceptions.ResponseException as exc:
+        #     LOGGER.error('Exception occurred while working on game %s: %s', game_id, exc)
 
     @gen.coroutine
     def submit_orders(self, game, power_name):

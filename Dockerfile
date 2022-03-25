@@ -32,6 +32,7 @@ RUN wget https://github.com/sylabs/singularity/releases/download/v3.9.6/singular
 RUN pip install -r /app/requirements.txt
 
 #install local version of research & diplomacy
+RUN git clone https://github.com/jataware/diplomacy.git
 RUN pip install /app/diplomacy
 
 #download the benchmark model
