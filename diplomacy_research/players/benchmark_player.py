@@ -46,11 +46,11 @@ class DipNetSLPlayer(ModelBasedPlayer):
             :param port: The port to use for the tf serving to query the model.
             :param name: Optional. The name of this player.
         """
-        model_url = 'https://f002.backblazeb2.com/file/ppaquette-public/benchmarks/neurips2019-sl_model.zip'
+        model_url = 'https://jataware-misc.s3.amazonaws.com/neurips2019-sl_model.zip'
 
         # Creating serving if port is not open
         if not is_port_opened(port):
-            launch_serving(model_url, port)
+            launch_serving(model_url, port, first_launch=False)
 
         # Creating adapter
         grpc_dataset = GRPCDataset(hostname='localhost',
@@ -106,7 +106,7 @@ class WebDiplomacyPlayer(ModelBasedPlayer):
             :param port: The port to use for the tf serving to query the model.
             :param name: Optional. The name of this player.
         """
-        model_url = 'https://f002.backblazeb2.com/file/ppaquette-public/benchmarks/neurips2019-sl_model.zip'
+        model_url = 'https://jataware-misc.s3.amazonaws.com/neurips2019-sl_model.zip'
 
         # Creating serving if port is not open
         if not is_port_opened(port):
@@ -128,6 +128,21 @@ class WebDiplomacyPlayer(ModelBasedPlayer):
 
 
 # ------ Utility Methods ------
+def download_model(model_url, bot_directory, bot_model):
+    print(f'Downloading {bot_model} from {model_url}')
+
+    shutil.rmtree(bot_directory, ignore_errors=True)
+    os.makedirs(bot_directory, exist_ok=True)
+
+    # Downloading model
+    download_file(model_url, bot_model, force=True)
+
+    # Unzipping file
+    zip_ref = zipfile.ZipFile(bot_model, 'r')
+    zip_ref.extractall(bot_directory)
+    zip_ref.close()
+
+
 def launch_serving(model_url, serving_port, first_launch=True):
     """ Launches or relaunches the TF Serving process
         :param model_url: The URL to use to download the model
@@ -142,19 +157,10 @@ def launch_serving(model_url, serving_port, first_launch=True):
 
     # If first launch, downloading the model
     if first_launch:
-        shutil.rmtree(bot_directory, ignore_errors=True)
-        os.makedirs(bot_directory, exist_ok=True)
+        download_model(model_url, bot_directory, bot_model)
 
-        # Downloading model
-        download_file(model_url, bot_model, force=True)
-
-        # Unzipping file
-        zip_ref = zipfile.ZipFile(bot_model, 'r')
-        zip_ref.extractall(bot_directory)
-        zip_ref.close()
-
-    # Otherwise, restarting the serving
-    elif is_port_opened(serving_port):
+    # restarting the serving
+    if is_port_opened(serving_port):
         kill_processes_using_port(serving_port)
 
     # Launching a new process
