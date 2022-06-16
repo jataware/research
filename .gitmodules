@@ -1,3 +1,6 @@
 [submodule "diplomacy"]
 	path = diplomacy
 	url = git@github.com:jataware/diplomacy.git
+[submodule "diplomacy-shade"]
+	path = diplomacy-shade
+	url = https://github.com/SHADE-AI/diplomacy.git

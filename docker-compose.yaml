@@ -1,0 +1,31 @@
+version: '2.2'
+services:
+
+  borgia_tensorflow:
+    image: jad952/dipnet_tf_server:v1
+    container_name: borgia_tf
+    ports:
+    - 9501:9501
+    expose: 
+      - "9501"
+    networks:
+      - diplomacy
+
+  borgia_bot:
+    build: 
+      context: .
+      dockerfile: Dockerfile-shade
+    image: jataware/borgia:v1
+    container_name: borgiabot
+    privileged: true
+    depends_on:
+      - borgia_tensorflow    
+    network_mode: "host"
+    environment:
+      - host=shade.tacc.utexas.edu
+      - port=8432
+      - game_prefix=jataware
+
+networks:
+  diplomacy:
+    driver: bridge
