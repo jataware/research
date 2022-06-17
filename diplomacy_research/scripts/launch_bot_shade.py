@@ -164,7 +164,7 @@ class Bot():
                 if messages:
                     yield [game.send_game_message(message=message) for message in messages]
                     for message in messages:
-                        LOGGER.info('%s/%s/%s/message: %s', game.game_id, game.current_short_phase, power_name, message.negotiation)
+                        LOGGER.info('%s/%s/%s/message: %s', game.game_id, game.current_short_phase, power_name, message.message)
 
     @gen.coroutine
     def generate_orders(self, channel, game_id, dummy_power_names):

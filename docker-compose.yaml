@@ -18,6 +18,8 @@ services:
     image: jataware/borgia:v1
     container_name: borgiabot
     privileged: true
+    volumes:
+      - ./:/app
     depends_on:
       - borgia_tensorflow    
     network_mode: "host"

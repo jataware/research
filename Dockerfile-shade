@@ -42,6 +42,9 @@ RUN pip install /app/diplomacy-shade
 ENV WORKING_DIR="$HOME/tmp"
 ENV PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION=cpp
 
+RUN pip install transformers datasets
+RUN pip install torch
+
 # run command to download the models
 RUN python /app/diplomacy_research/scripts/launch_bot_shade.py --download-models
 
